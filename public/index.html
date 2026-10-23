@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contest Leaderboard</title>
+  <meta name="description" content="Custom contest leaderboard with live standings">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header id="topbar">
+    <div class="topbar-left">
+      <h1 id="contest-title">—</h1>
+      <span id="sub-count" class="badge"></span>
+      <span id="scoring-mode-badge" class="badge mode-badge"></span>
+    </div>
+    <div class="topbar-right">
+      <div class="view-toggles">
+        <label class="mini-toggle" title="Show solve times">
+          <input type="checkbox" id="toggle-details" checked>
+          <span>Times</span>
+        </label>
+        <label class="mini-toggle" title="Show disqualified">
+          <input type="checkbox" id="toggle-dq-visible">
+          <span>DQ</span>
+        </label>
+        <label class="mini-toggle" title="Show unregistered">
+          <input type="checkbox" id="toggle-unreg-visible" checked>
+          <span>Unreg</span>
+        </label>
+      </div>
+      <div class="topbar-sep"></div>
+      <div class="refresh-box">
+        <span id="refresh-dot" class="dot"></span>
+        <span id="refresh-text">—</span>
+      </div>
+      <button id="btn-refresh" class="btn btn-icon" title="Force refresh">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M13.65 2.35A7.96 7.96 0 0 0 8 0C3.58 0 0 3.58 0 8s3.58 8 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 8 14 6 6 0 1 1 8 2c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35Z" fill="currentColor"/></svg>
+      </button>
+      <button id="btn-theme" class="btn btn-icon" title="Toggle theme">
+        <svg id="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg id="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button id="btn-settings" class="btn btn-icon" title="Admin Panel">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.5"/><path d="M10 1a1 1 0 0 1 1 1v1.07a7.07 7.07 0 0 1 2.62 1.08l.75-.76a1 1 0 1 1 1.42 1.42l-.76.75c.5.8.87 1.68 1.08 2.62H17a1 1 0 1 1 0 2h-1.07a7.07 7.07 0 0 1-1.08 2.62l.76.75a1 1 0 1 1-1.42 1.42l-.75-.76a7.07 7.07 0 0 1-2.62 1.08V17a1 1 0 1 1-2 0v-1.07a7.07 7.07 0 0 1-2.62-1.08l-.75.76a1 1 0 0 1-1.42-1.42l.76-.75A7.07 7.07 0 0 1 3.07 11H2a1 1 0 1 1 0-2h1.07a7.07 7.07 0 0 1 1.08-2.62l-.76-.75a1 1 0 0 1 1.42-1.42l.75.76A7.07 7.07 0 0 1 8 3.07V2a1 1 0 0 1 1-1h1Z" stroke="currentColor" stroke-width="1.5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <table id="leaderboard">
+      <thead id="board-head"></thead>
+      <tbody id="board-body"></tbody>
+    </table>
+    <div id="empty-state" class="hidden">
+      <p>No data loaded yet.</p>
+    </div>
+  </main>
+
+  <!-- User detail -->
+  <div id="user-overlay" class="overlay hidden">
+    <div class="panel panel-lg">
+      <div class="panel-header">
+        <h2 id="user-detail-title">—</h2>
+        <button id="btn-close-user" class="btn btn-icon btn-close">&times;</button>
+      </div>
+      <div class="panel-body" id="user-detail-body"></div>
+    </div>
+  </div>
+
+  <!-- Admin Login -->
+  <div id="login-overlay" class="overlay hidden">
+    <div class="panel" style="width:340px">
+      <div class="panel-header">
+        <h2>Admin Login</h2>
+        <button id="btn-close-login" class="btn btn-icon btn-close">&times;</button>
+      </div>
+      <div class="panel-body">
+        <div class="field">
+          <label for="admin-password">Password</label>
+          <input type="password" id="admin-password" placeholder="Admin Password" autocomplete="off">
+        </div>
+        <div class="panel-footer">
+          <button id="btn-login-submit" class="btn btn-primary">Login</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

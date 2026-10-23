@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Contest Leaderboard</title>
+  <meta name="description" content="Admin panel for contest leaderboard configuration">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+
+  <!-- Login gate -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg>
+      </div>
+      <h1>Admin Access</h1>
+      <p class="login-sub">Enter the admin password to continue</p>
+      <div class="login-field">
+        <input type="password" id="login-password" placeholder="Password" autocomplete="off">
+        <button id="btn-login" class="btn btn-accent">Unlock</button>
+      </div>
+      <p id="login-error" class="error-text"></p>
+      <a href="/" class="back-link">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2L4 8l6 6"/></svg>
+        Back to Leaderboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Admin panel -->
+  <div id="admin-panel" class="hidden">
+    <header class="admin-header">
+      <a href="/" class="header-back" title="Back to leaderboard">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2L4 8l6 6"/></svg>
+        <span>Leaderboard</span>
+      </a>
+      <h1 class="header-title">Admin Panel</h1>
+      <div class="header-actions">
+        <button id="btn-force-refresh" class="btn btn-outline" title="Re-fetch all data from HackerRank">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.65 2.35A7.96 7.96 0 0 0 8 0C3.58 0 0 3.58 0 8s3.58 8 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 8 14 6 6 0 1 1 8 2c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35Z" fill="currentColor"/></svg>
+          Force Refresh
+        </button>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <!-- Connection Status -->
+      <section class="card" id="section-connection">
+        <div class="card-head">
+          <h2>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Connection
+          </h2>
+          <div id="conn-badge" class="status-badge status-unknown">
+            <span class="status-dot"></span>
+            <span id="conn-badge-text">Unknown</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="conn-detail" class="conn-detail">
+            <p id="conn-message">Click "Test Connection" to check cookie validity</p>
+          </div>
+          <div class="field-group">
+            <div class="field">
+              <label for="contest-slug">Contest Slug</label>
+              <input type="text" id="contest-slug" placeholder="e.g. knuth-cup-impressions" autocomplete="off" spellcheck="false">
+              <span class="field-hint">From URL: hackerrank.com/contests/<strong>this-part</strong></span>
+            </div>
+            <div class="field">
+              <label for="hr-cookie">HackerRank Cookie</label>
+              <textarea id="hr-cookie" rows="3" placeholder="Paste full cookie string from browser DevTools → Network tab → any request → Cookie header" autocomplete="off" spellcheck="false"></textarea>
+              <span class="field-hint">Must include _hrank_session, not just __cf_bm</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button id="btn-test-conn" class="btn btn-outline">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              Test Connection
+            </button>
+            <button id="btn-save-conn" class="btn btn-accent">Save &amp; Apply</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scoring -->
+      <section class="card" id="section-scoring">
+        <div class="card-head">
+          <h2>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+            Scoring
+          </h2>
+        </div>
+        <div class="card-body">
+          <div class="field-group">
+            <div class="field">
+              <label for="scoring-mode">Ranking Mode</label>
+              <select id="scoring-mode">
+                <option value="score">Score + Last-AC Tiebreak</option>
+                <option value="icpc">Score + ICPC Tiebreak</option>
+              </select>
+              <span class="field-hint" id="mode-hint">Higher score wins. Ties broken by last AC time + wrong penalties.</span>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="penalty-minutes">Wrong-Attempt Penalty</label>
+                <div class="input-suffix">
+                  <input type="number" id="penalty-minutes" min="0" max="999" value="20">
+                  <span>min</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="contest-duration">Contest Duration</label>
+                <div class="input-suffix">
+                  <input type="number" id="contest-duration" min="0" value="0">
+                  <span>min</span>
+                </div>
+                <span class="field-hint">0 = no limit</span>
+              </div>
+            </div>
+            <div class="field">
+              <label class="toggle-row">
+                <span class="toggle-track">
+                  <input type="checkbox" id="toggle-partial-marking" checked>
+                  <span class="toggle-slider"></span>
+                </span>
+                <span>Partial Marking</span>
+              </label>
+              <span class="field-hint">When off, non-AC submissions score 0</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button id="btn-save-scoring" class="btn btn-accent">Apply Scoring</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Participants -->
+      <section class="card" id="section-participants">
+        <div class="card-head">
+          <h2>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Participants
+          </h2>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label for="dq-input">Disqualify User</label>
+            <div class="input-btn-row">
+              <input type="text" id="dq-input" placeholder="HackerRank username" autocomplete="off">
+              <button id="btn-dq" class="btn btn-danger">Disqualify</button>
+            </div>
+          </div>
+          <div id="dq-list" class="chip-list"></div>
+          <div id="dq-empty" class="empty-hint">No disqualified users</div>
+        </div>
+      </section>
+
+      <!-- Export & Data -->
+      <section class="card" id="section-export">
+        <div class="card-head">
+          <h2>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export &amp; Data
+          </h2>
+        </div>
+        <div class="card-body">
+          <p style="font-size:.82rem;color:var(--text-3);margin-bottom:16px">
+            Download the full standings with registration data, scores, and penalties.
+          </p>
+          <div class="export-row">
+            <button id="btn-export-json" class="btn btn-outline">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Download JSON
+            </button>
+            <button id="btn-export-csv" class="btn btn-outline">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Download CSV
+            </button>
+          </div>
+          <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+            <p style="font-size:.78rem;color:var(--text-4);margin-bottom:10px">Registration data is loaded from <code style="color:var(--text-3)">Registration/*.csv</code></p>
+            <button id="btn-reload-reg" class="btn btn-outline">Reload Registrations</button>
+            <span id="reg-count" style="font-size:.78rem;color:var(--text-3);margin-left:10px"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Status -->
+      <section class="card card-status" id="section-status">
+        <div class="card-head">
+          <h2>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            System Status
+          </h2>
+        </div>
+        <div class="card-body">
+          <div class="status-grid">
+            <div class="status-item">
+              <span class="status-label">Submissions</span>
+              <span class="status-value" id="stat-subs">—</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Last Fetch</span>
+              <span class="status-value" id="stat-last-fetch">—</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Fetch Status</span>
+              <span class="status-value" id="stat-fetch-status">—</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Refresh Interval</span>
+              <span class="status-value" id="stat-interval">—</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="admin-footer">
+      <span>CHL v0.1.0</span>
+      <span id="footer-toast"></span>
+    </footer>
+  </div>
+
+  <script src="/admin.js"></script>
+</body>
+</html>
