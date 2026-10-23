@@ -296,16 +296,60 @@
     downloadFile('/api/export/csv', 'standings.csv');
   });
 
-  // ---- RELOAD REGISTRATIONS ----
-  $('#btn-reload-reg').addEventListener('click', function () {
-    api('/api/reload-registrations', { method: 'POST' })
-      .then(function (r) {
-        $('#reg-count').textContent = r.count + ' registrations loaded';
-        toast('Registrations reloaded');
+  // ---- UPLOAD REGISTRATIONS ----
+  var regFileInput = $('#reg-file-input');
+  var regFileName = $('#reg-file-name');
+  var btnUpload = $('#btn-upload-reg');
+
+  regFileInput.addEventListener('change', function () {
+    var file = regFileInput.files[0];
+    if (file) {
+      regFileName.textContent = file.name;
+      btnUpload.disabled = false;
+    } else {
+      regFileName.textContent = 'No file selected';
+      btnUpload.disabled = true;
+    }
+  });
+
+  btnUpload.addEventListener('click', function () {
+    var file = regFileInput.files[0];
+    if (!file) return;
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var csv = e.target.result;
+      btnUpload.disabled = true;
+      btnUpload.textContent = 'Uploading…';
+
+      fetch('/api/upload-registrations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/csv',
+          'x-admin-password': adminPassword
+        },
+        body: csv
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.ok) {
+          $('#reg-count').textContent = d.count + ' registrations loaded';
+          toast('Registrations uploaded: ' + d.count + ' entries');
+          regFileInput.value = '';
+          regFileName.textContent = 'No file selected';
+        } else {
+          toast('Upload failed: ' + (d.error || 'unknown error'));
+        }
       })
       .catch(function () {
-        toast('Failed to reload registrations');
+        toast('Upload failed — check file format');
+      })
+      .finally(function () {
+        btnUpload.disabled = false;
+        btnUpload.textContent = 'Upload';
       });
+    };
+    reader.readAsText(file);
   });
 
   // ---- INIT ----

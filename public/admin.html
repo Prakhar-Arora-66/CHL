@@ -183,9 +183,18 @@
             </button>
           </div>
           <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
-            <p style="font-size:.78rem;color:var(--text-4);margin-bottom:10px">Registration data is loaded from <code style="color:var(--text-3)">Registration/*.csv</code></p>
-            <button id="btn-reload-reg" class="btn btn-outline">Reload Registrations</button>
-            <span id="reg-count" style="font-size:.78rem;color:var(--text-3);margin-left:10px"></span>
+            <p style="font-size:.78rem;color:var(--text-3);margin-bottom:8px">Upload registration CSV to map HackerRank handles to real names.</p>
+            <p style="font-size:.75rem;color:var(--text-4);margin-bottom:12px">Expected columns: <code style="color:var(--accent)">display_name, enrollment_no, branch, batch, hackerrank_handle, campus, year</code></p>
+            <div class="upload-row">
+              <label for="reg-file-input" class="btn btn-outline upload-label">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Choose CSV
+              </label>
+              <span id="reg-file-name" style="font-size:.8rem;color:var(--text-3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">No file selected</span>
+              <button id="btn-upload-reg" class="btn btn-accent" disabled>Upload</button>
+            </div>
+            <input type="file" id="reg-file-input" accept=".csv" style="display:none">
+            <span id="reg-count" style="font-size:.78rem;color:var(--text-3);display:block;margin-top:8px"></span>
           </div>
         </div>
       </section>

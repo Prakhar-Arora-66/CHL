@@ -17,7 +17,7 @@ const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 const DATA_DIR = path.resolve('data');
 const CONFIG_PATH = path.join(DATA_DIR, 'board_config.json');
-const REG_DIR = path.resolve('Registration');
+const REG_CSV_PATH = path.join(DATA_DIR, 'registrations.csv');
 
 mkdirSync(DATA_DIR, { recursive: true });
 
@@ -32,34 +32,38 @@ interface RegistrationEntry {
   yearOfStudy: string;
 }
 
-function loadRegistrations(): Map<string, RegistrationEntry> {
+function parseRegistrationsCsv(content: string): Map<string, RegistrationEntry> {
   const map = new Map<string, RegistrationEntry>();
-  if (!existsSync(REG_DIR)) return map;
+  const lines = content.split('\n').map(l => l.replace(/\r$/, '')).filter(l => l.trim());
+  if (lines.length < 2) return map;
 
-  const files = readdirSync(REG_DIR).filter(f => f.toLowerCase().endsWith('.csv'));
-  for (const file of files) {
-    const content = readFileSync(path.join(REG_DIR, file), 'utf-8');
-    const lines = content.split('\n').map(l => l.replace(/\r$/, '')).filter(l => l.trim());
-    if (lines.length < 2) continue;
-
-    for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(',');
-      if (cols.length < 5) continue;
-
-      const handle = cols[4].trim();
-      if (!handle) continue;
-      map.set(handle.toLowerCase(), {
-        displayName: cols[0].trim(),
-        enrollmentNo: cols[1].trim(),
-        branch: cols[2].trim(),
-        batch: cols[3].trim(),
-        campus: cols[5]?.trim() || '',
-        yearOfStudy: cols[6]?.trim() || '',
-      });
-    }
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',');
+    if (cols.length < 5) continue;
+    const handle = cols[4].trim();
+    if (!handle) continue;
+    map.set(handle.toLowerCase(), {
+      displayName: cols[0].trim(),
+      enrollmentNo: cols[1].trim(),
+      branch: cols[2].trim(),
+      batch: cols[3].trim(),
+      campus: cols[5]?.trim() || '',
+      yearOfStudy: cols[6]?.trim() || '',
+    });
   }
-  console.log(`  loaded ${map.size} registrations from ${files.length} CSV file(s)`);
   return map;
+}
+
+function loadSavedRegistrations(): Map<string, RegistrationEntry> {
+  if (!existsSync(REG_CSV_PATH)) return new Map();
+  try {
+    const content = readFileSync(REG_CSV_PATH, 'utf-8');
+    const map = parseRegistrationsCsv(content);
+    console.log(`  loaded ${map.size} registrations from saved CSV`);
+    return map;
+  } catch {
+    return new Map();
+  }
 }
 
 // ---
@@ -70,7 +74,7 @@ let contestSlug = process.env.HR_CONTEST_SLUG ?? '';
 let contestStart = Number(process.env.HR_CONTEST_START) || 0;
 let lastFetchTime = 0;
 let fetchInProgress = false;
-let registrations = loadRegistrations();
+let registrations = loadSavedRegistrations();
 
 function loadConfig(): ScorerConfig {
   const defaults: ScorerConfig = {
@@ -297,6 +301,7 @@ function csvEscape(v: unknown): string {
 
 const app = express();
 app.use(express.json());
+app.use(express.text({ type: 'text/csv', limit: '5mb' }));
 app.use(express.static(path.resolve('public')));
 
 // API: get scoreboard
@@ -468,10 +473,21 @@ app.get('/api/export/csv', requireAdmin, (_req, res) => {
   res.send(csv);
 });
 
-// API: reload registration data
-app.post('/api/reload-registrations', requireAdmin, (_req, res) => {
-  registrations = loadRegistrations();
+// API: upload registration CSV from admin browser
+app.post('/api/upload-registrations', requireAdmin, (req, res) => {
+  const csv = req.body as string;
+  if (!csv || typeof csv !== 'string') {
+    return res.status(400).json({ error: 'CSV body required' });
+  }
+  const parsed = parseRegistrationsCsv(csv);
+  if (parsed.size === 0) {
+    return res.status(400).json({ error: 'No valid rows found in CSV' });
+  }
+  // persist to data dir so it survives restarts
+  writeFileSync(REG_CSV_PATH, csv, 'utf-8');
+  registrations = parsed;
   rebuildScoreboard();
+  console.log(`  registrations updated: ${registrations.size} entries`);
   res.json({ ok: true, count: registrations.size });
 });
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +13,7 @@
 <body>
   <header id="topbar">
     <div class="topbar-left">
+      <img src="/knuth-logo.webp" alt="KPH" class="topbar-logo" id="topbar-logo">
       <h1 id="contest-title">—</h1>
       <span id="sub-count" class="badge"></span>
       <span id="scoring-mode-badge" class="badge mode-badge"></span>
@@ -44,9 +45,9 @@
         <svg id="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
         <svg id="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
-      <button id="btn-settings" class="btn btn-icon" title="Admin Panel">
+      <a href="/admin" target="_blank" rel="noopener noreferrer" id="btn-settings" class="btn btn-icon" title="Admin Panel">
         <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.5"/><path d="M10 1a1 1 0 0 1 1 1v1.07a7.07 7.07 0 0 1 2.62 1.08l.75-.76a1 1 0 1 1 1.42 1.42l-.76.75c.5.8.87 1.68 1.08 2.62H17a1 1 0 1 1 0 2h-1.07a7.07 7.07 0 0 1-1.08 2.62l.76.75a1 1 0 1 1-1.42 1.42l-.75-.76a7.07 7.07 0 0 1-2.62 1.08V17a1 1 0 1 1-2 0v-1.07a7.07 7.07 0 0 1-2.62-1.08l-.75.76a1 1 0 0 1-1.42-1.42l.76-.75A7.07 7.07 0 0 1 3.07 11H2a1 1 0 1 1 0-2h1.07a7.07 7.07 0 0 1 1.08-2.62l-.76-.75a1 1 0 0 1 1.42-1.42l.75.76A7.07 7.07 0 0 1 8 3.07V2a1 1 0 0 1 1-1h1Z" stroke="currentColor" stroke-width="1.5"/></svg>
-      </button>
+      </a>
     </div>
   </header>
 
@@ -71,24 +72,6 @@
     </div>
   </div>
 
-  <!-- Admin Login -->
-  <div id="login-overlay" class="overlay hidden">
-    <div class="panel" style="width:340px">
-      <div class="panel-header">
-        <h2>Admin Login</h2>
-        <button id="btn-close-login" class="btn btn-icon btn-close">&times;</button>
-      </div>
-      <div class="panel-body">
-        <div class="field">
-          <label for="admin-password">Password</label>
-          <input type="password" id="admin-password" placeholder="Admin Password" autocomplete="off">
-        </div>
-        <div class="panel-footer">
-          <button id="btn-login-submit" class="btn btn-primary">Login</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <script src="/app.js"></script>
 </body>

@@ -16,7 +16,7 @@
   var boardBody = $('#board-body');
 
   // ---- theme ----
-  var theme = localStorage.getItem('chl-theme') || 'light';
+  var theme = localStorage.getItem('chl-theme') || 'dark';
   applyTheme(theme);
 
   function applyTheme(t) {
@@ -320,14 +320,9 @@
     applyTheme(theme === 'light' ? 'dark' : 'light');
   });
 
-  // Settings button → go to admin page (or login first)
+  // Settings button → open admin in new tab
   $('#btn-settings').addEventListener('click', function () {
-    if (adminPassword) {
-      window.location.href = '/admin';
-    } else {
-      $('#login-overlay').classList.remove('hidden');
-      setTimeout(function () { $('#admin-password').focus(); }, 100);
-    }
+    window.open('/admin', '_blank');
   });
 
   $('#btn-close-user').addEventListener('click', function () { $('#user-overlay').classList.add('hidden'); });
@@ -373,32 +368,8 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       $('#user-overlay').classList.add('hidden');
-      $('#login-overlay').classList.add('hidden');
     }
   });
-
-  // Login → redirect to admin on success
-  $('#btn-login-submit').addEventListener('click', function () {
-    var p = $('#admin-password').value;
-    api('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: p }) })
-      .then(function(res) {
-        if (res.ok) {
-          adminPassword = p;
-          sessionStorage.setItem('admin-password', p);
-          $('#login-overlay').classList.add('hidden');
-          window.location.href = '/admin';
-        }
-      }).catch(function() {
-        alert('Incorrect password');
-      });
-  });
-
-  $('#admin-password').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') $('#btn-login-submit').click();
-  });
-
-  $('#btn-close-login').addEventListener('click', function () { $('#login-overlay').classList.add('hidden'); });
-  $('#login-overlay').addEventListener('click', function (e) { if (e.target === this) this.classList.add('hidden'); });
 
   fetchBoard();
   startTimers();

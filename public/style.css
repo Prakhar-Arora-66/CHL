@@ -75,7 +75,16 @@ body {
   top: 0;
   z-index: 100;
 }
-.topbar-left { display: flex; align-items: baseline; gap: 14px; }
+.topbar-left { display: flex; align-items: center; gap: 14px; }
+.topbar-logo {
+  height: 30px;
+  width: auto;
+  display: block;
+  flex-shrink: 0;
+  border-radius: 5px;
+  object-fit: contain;
+}
+[data-theme="dark"] .topbar-logo { filter: invert(1); }
 .topbar-left h1 { font-size: 1.05rem; font-weight: 700; }
 .badge { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-3); }
 .mode-badge {
@@ -124,6 +133,7 @@ body {
   display: inline-flex; align-items: center; justify-content: center;
   border: none; border-radius: 5px; cursor: pointer;
   font-family: inherit; font-size: .85rem; transition: all 100ms;
+  text-decoration: none;
 }
 .btn-icon { background: none; color: var(--text-3); padding: 7px; border-radius: 6px; }
 .btn-icon:hover { background: var(--surface-hover); color: var(--text); }
