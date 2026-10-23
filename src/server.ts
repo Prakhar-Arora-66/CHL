@@ -282,7 +282,7 @@ function buildExportCsv(): string {
       r.solved,
       r.penalty,
       r.disqualified ? 'Yes' : 'No',
-      ...r.problems.map(p => p.solved ? `${p.bestScore} (${p.solveTimeMinutes}m, ${p.wrongAttempts}WA)` : p.attempts > 0 ? `0 (${p.attempts} tries)` : ''),
+      ...r.problems.map(p => p.solved ? `${p.bestScore} (${p.solveTimeMinutes}m, ${p.wrongAttempts}WA)` : p.attempts > 0 ? `${p.bestScore} (${p.attempts} tries)` : ''),
     ];
     lines.push(row.map(csvEscape).join(','));
   }

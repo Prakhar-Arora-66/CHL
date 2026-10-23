@@ -45,6 +45,33 @@ export interface Scoreboard {
   contestSlug: string;
 }
 
+function calcSubmissionScore(
+  s: Submission,
+  maxScore: number,
+  partialMarking: boolean,
+): number {
+  if (s.verdict === 'AC') {
+    return maxScore > 0 ? maxScore : (s.score > 0 ? s.score : 1);
+  }
+  if (!partialMarking) {
+    return 0;
+  }
+  // When partial marking is enabled:
+  if (s.score > 1 || (maxScore <= 1 && s.score > 0)) {
+    // HackerRank already provided explicit points (e.g. 94.74, 133.33)
+    return s.score;
+  }
+  if (s.score > 0 && maxScore > 1) {
+    // HackerRank provided normalized score between 0 and 1
+    return Number((s.score * maxScore).toFixed(2));
+  }
+  if (s.testsTotal > 0 && s.testsPassed > 0 && maxScore > 0) {
+    // HackerRank recorded score 0 (e.g. binary scoring contest), compute from test cases passed
+    return Number(((s.testsPassed / s.testsTotal) * maxScore).toFixed(2));
+  }
+  return 0;
+}
+
 // build problem results for one user
 function buildProblemResults(
   userSubs: Submission[],
@@ -80,7 +107,7 @@ function buildProblemResults(
     let bestScore = 0;
 
     for (const s of subs) {
-      const sScore = partialMarking ? s.score : (s.verdict === 'AC' ? s.score : 0);
+      const sScore = calcSubmissionScore(s, prob.maxScore, partialMarking);
       bestScore = Math.max(bestScore, sScore);
       if (!solved && s.verdict === 'AC') {
         solved = true;
@@ -107,7 +134,7 @@ function buildProblemResults(
       wrongAttempts: wrongBefore,
       penaltyMinutes: pen,
       solveTimeMinutes: solveTimeMin,
-      bestScore,
+      bestScore: Number(bestScore.toFixed(2)),
       firstAcTime,
     };
   });
@@ -196,7 +223,7 @@ export function computeStandings(
     );
 
     const solved = problems.filter(p => p.solved).length;
-    const totalScore = problems.reduce((sum, p) => sum + p.bestScore, 0);
+    const totalScore = Number(problems.reduce((sum, p) => sum + p.bestScore, 0).toFixed(2));
     const lastAcTime = Math.max(0, ...problems.filter(p => p.solved).map(p => p.firstAcTime));
 
     standings.push({
