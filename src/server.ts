@@ -145,7 +145,7 @@ async function fetchFresh(): Promise<Submission[]> {
     }
   } catch { /* non-fatal */ }
 
-  if (!contestStart) {
+  if (!contestStart && raw.length > 0) {
     contestStart = deriveContestStart(raw);
   }
 
@@ -374,6 +374,8 @@ app.post('/api/config', requireAdmin, (req, res) => {
     cachedSubmissions = [];
     cachedScoreboard = null;
     fetchInProgress = false;
+    refreshData();
+  } else if (body.cookie !== undefined && body.cookie !== '***') {
     refreshData();
   } else {
     rebuildScoreboard();

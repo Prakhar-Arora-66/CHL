@@ -30,8 +30,9 @@ export class HRClient {
     this.retries = cfg.maxRetries ?? 3;
   }
 
-  async fetchPage(offset: number): Promise<HRPage> {
-    const url = `${this.base}/judge_submissions?offset=${offset}&limit=${this.limit}`;
+  async fetchPage(offset: number, limit?: number): Promise<HRPage> {
+    const pageLimit = limit ?? this.limit;
+    const url = `${this.base}/judge_submissions?offset=${offset}&limit=${pageLimit}`;
 
     for (let attempt = 0; attempt <= this.retries; attempt++) {
       if (attempt > 0) {
@@ -73,6 +74,14 @@ export class HRClient {
         if (body.includes('cf-challenge') || body.includes('Just a moment')) {
           throw new Error('cloudflare challenge detected — use manual import instead');
         }
+
+        // HackerRank internal server error (e.g. nil compile_status on corrupted submission)
+        if (res.status === 500) {
+          const err: any = new Error(`HTTP 500: ${body.slice(0, 300)}`);
+          err.status = 500;
+          throw err;
+        }
+
         if (attempt < this.retries) continue;
         throw new Error(`HTTP ${res.status}: ${body.slice(0, 300)}`);
       }
@@ -90,18 +99,68 @@ export class HRClient {
     throw new Error('max retries exceeded');
   }
 
+  // Fetch a range [offset, offset + limit], recursively subdividing down to 1 if HTTP 500 occurs
+  async fetchRangeSafe(
+    offset: number,
+    limit: number,
+  ): Promise<{ models: HRSubmission[]; total: number }> {
+    try {
+      const page = await this.fetchPage(offset, limit);
+      return { models: page.models, total: page.total };
+    } catch (err: any) {
+      if (err.status === 500) {
+        if (limit > 1) {
+          const half = Math.floor(limit / 2);
+          const leftLimit = half;
+          const rightLimit = limit - half;
+          console.warn(`  [WARN] Offset ${offset} (limit ${limit}) hit HTTP 500. Subdividing into [${leftLimit}, ${rightLimit}]...`);
+          const left = await this.fetchRangeSafe(offset, leftLimit);
+          await wait(Math.max(300, Math.round(this.delay / 3)));
+          const right = await this.fetchRangeSafe(offset + leftLimit, rightLimit);
+          return {
+            models: [...left.models, ...right.models],
+            total: Math.max(left.total, right.total),
+          };
+        } else {
+          console.warn(`  [WARN] Skipping single corrupted submission at offset ${offset} (HackerRank returned HTTP 500)`);
+          return { models: [], total: 0 };
+        }
+      }
+      throw err;
+    }
+  }
+
   async fetchAll(opts?: {
     onProgress?: (fetched: number, total: number) => void;
   }): Promise<{ submissions: HRSubmission[]; total: number }> {
-    const first = await this.fetchPage(0);
-    const { total } = first;
-    const all: HRSubmission[] = [...first.models];
+    const first = await this.fetchRangeSafe(0, this.limit);
+    let total = first.total;
+    const seen = new Set<number>();
+    const all: HRSubmission[] = [];
+
+    for (const s of first.models) {
+      if (!seen.has(s.id)) {
+        seen.add(s.id);
+        all.push(s);
+      }
+    }
     opts?.onProgress?.(all.length, total);
 
     for (let offset = this.limit; offset < total; offset += this.limit) {
-      await wait(this.delay + Math.random() * 500);
-      const page = await this.fetchPage(offset);
-      all.push(...page.models);
+      await wait(this.delay + Math.random() * 300);
+      const batchLimit = Math.min(this.limit, total - offset);
+      const res = await this.fetchRangeSafe(offset, batchLimit);
+
+      if (res.total > total) {
+        total = res.total;
+      }
+
+      for (const s of res.models) {
+        if (!seen.has(s.id)) {
+          seen.add(s.id);
+          all.push(s);
+        }
+      }
       opts?.onProgress?.(all.length, total);
     }
 
